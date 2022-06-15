@@ -1,4 +1,5 @@
 # m122
 
-##Idee
-Ich möchte den WM-Spielplan auf einem PDF darstellen.
+## Idee
+Ich möchte die Akutellen Stats zu der Nationsleague(Fussball) auf meinem PDF anzeigen.(gespielte Spiele, Punkte, Teams, Rangliste) 
+
