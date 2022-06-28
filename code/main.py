@@ -1,30 +1,20 @@
-import string
-from pip import main
+import requests
+import json
+from urllib.request import urlopen
+
+API_KEY = "6612968d9b1f2c245fed7442ad724039"
 
 
-def apiRequest():
-
-    nowRequest = requests.get("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=CHF").json()
-
-    historyRequest = requests.get("https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=CHF&days=7&interval=daily").json()
-
-    price = nowRequest["bitcoin"]["chf"]
-
-    name = "Bitcoin"
-
-    history = int(historyRequest["prices"][0][1])
-
-    percentage = (price - history) / history * 100
-
-    return price, name, history, percentage
+def getcity():
+    url = 'http://ipinfo.io/json'
+    response = urlopen(url)
+    city = json.load(response)['region']
+    return city
 
 
+url = f'https://api.openweathermap.org/data/2.5/weather?q=%7Bgetcity()%7D&appid=%7BAPI_KEY%7D&units=metric'
+data = requests.get(url).json()
+temp = data['main']['temp']
+humidity = data['main']['humidity']
 
-def printThat(input):
-    print(input)
-
-def main():
-    printThat("moin")
-
-
-main()
+print(f'In {getcity()} beträgt die Temperatur {temp}°. Die Luftfeuchtigkeit beträgt {humidity}%.')
