@@ -3,16 +3,25 @@ import json
 from urllib.request import urlopen
 import yagmail
 from fpdf import FPDF
-from datetime import date
+import logging
+import ftplib
+import aspose.words as aw
 
 API_KEY = "6612968d9b1f2c245fed7442ad724039"
 
 
 def applicationStart():
-    url2 = f'https://api.openweathermap.org/data/2.5/weather?q={getcity()}&appid={API_KEY}&units=metric'
-    data = requests.get(url2).json()
-    temperatur = data['main']['temp']
-    humidity = data['main']['humidity']
+    global temperatur, humidity
+
+    logging.basicConfig(filename="log.txt")
+
+    try:
+        url2 = f'https://api.openweathermap.org/data/2.5/weather?q={getcity()}&appid={API_KEY}&units=metric'
+        data = requests.get(url2).json()
+        temperatur = data['main']['temp']
+        humidity = data['main']['humidity']
+    except:
+        logging.error("url not found")
 
     loc = getLoc().split(",")
 
@@ -31,7 +40,7 @@ def applicationStart():
 
     user = 'steiner.niculin@gmail.com'
     app_password = 'ykrencifzjupppsx'  # a token for gmail
-    to = mail3
+    to = mail1
 
     subject = 'Ihre Wetterdaten'
 
@@ -57,6 +66,8 @@ def applicationStart():
     pdf.cell(200, 10, txt=f'Description: {description}',
              ln=5)
 
+    pdf.image(getWeatherImg(weather), 60, 100, 80, 80)
+
     pdf.set_left_margin(0, )
     pdf.add_page()
     pdf.set_font("Arial", size=15)
@@ -65,7 +76,6 @@ def applicationStart():
 
     clothes = getClothes(temperatur, weather)
     counter = 1
-    x = 0
     for i in clothes:
         y = 50 * counter
         pdf.cell(0, 50, txt=f"{i.split('.')[0].split('/')[1]}", ln=1, align='C')
@@ -73,6 +83,22 @@ def applicationStart():
         counter += 1
 
     pdf.output("Wetterdaten.pdf")
+
+    HOSTNAME = "niculinsteiner.bplaced.net"
+    USERNAME = "niculinsteiner_niculin"
+    PASSWORD = "FcSg1879!"
+
+    ftp_server = ftplib.FTP(HOSTNAME, USERNAME, PASSWORD)
+    ftp_server.encoding = "utf-8"
+
+    filename = "Wetterdaten.pdf"
+
+    with open(filename, "rb") as file:
+        ftp_server.storbinary(f"STOR {filename}", file)
+
+    ftp_server.quit()
+
+    print("on server")
 
     with yagmail.SMTP(user, app_password) as yag:
         yag.send(to, subject, "Wetterdaten.pdf")
@@ -83,7 +109,7 @@ def getcity():
     url = 'http://ipinfo.io/json'
     response = urlopen(url)
     city = json.load(response)['region']
-    return city
+    return "Dubai"
 
 
 def getLoc():
@@ -111,7 +137,10 @@ def getClothes(temperatur, weather):
         'images/Winterjacke.png',
         'images/Regenjacke.jpg', 'images/Jäckchen.jpg']
 
-    if weather.__eq__('Rain'):
+    if weather.__eq__('Rain') and temperatur > 23:
+        return [hat[0], pullover, tshirt, pants[0], shoes[1]]
+
+    elif weather.__eq__('Rain'):
         return [hat[0], pullover, jacket[1], pants[1], shoes[1]]
 
     elif weather.__eq__('Clouds') and temperatur > 20:
@@ -120,6 +149,9 @@ def getClothes(temperatur, weather):
     elif weather.__eq__('Clear') and temperatur > 25:
         return [hat[1], hat[3], pants[0], shoes[2], tshirt]
 
+    elif weather.__eq__('Clear') and temperatur > 20:
+        return [hat[1], hat[3], pants[0], shoes[1], tshirt]
+
     elif temperatur < 10:
         return [pullover, hat[2], pants[1], shoes[0], jacket[0]]
 
@@ -127,4 +159,22 @@ def getClothes(temperatur, weather):
         return [hat[3], pullover, tshirt, pants[0], shoes[1]]
 
 
+def getWeatherImg(weather):
+    if weather.__eq__('Clouds'):
+        return 'images/clouds.jpg'
+
+    if weather.__eq__('Rain'):
+        return 'images/rain.png'
+
+    if weather.__eq__('Clear'):
+        return 'images/sun.png'
+
+    if weather.__eq__('Drizzle'):
+        return 'images/drizzle.png'
+
+
+# Fill Required Information
+
+
 applicationStart()
+# beplaced pw = FcSg1879!
