@@ -109,7 +109,7 @@ def getcity():
     url = 'http://ipinfo.io/json'
     response = urlopen(url)
     city = json.load(response)['region']
-    return "Dubai"
+    return city
 
 
 def getLoc():
