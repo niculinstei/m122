@@ -5,16 +5,15 @@ import yagmail
 from fpdf import FPDF
 import logging
 import ftplib
-import aspose.words as aw
 
 API_KEY = "6612968d9b1f2c245fed7442ad724039"
 
 
 def applicationStart():
     global temperatur, humidity
-
+    # logfile
     logging.basicConfig(filename="log.txt")
-
+    # request 1
     try:
         url2 = f'https://api.openweathermap.org/data/2.5/weather?q={getcity()}&appid={API_KEY}&units=metric'
         data = requests.get(url2).json()
@@ -23,12 +22,12 @@ def applicationStart():
     except:
         logging.error("url not found")
 
+    # get lat and lon from location of IP
     loc = getLoc().split(",")
-
     lat = loc[0]
-
     lon = loc[1]
 
+    # request 2
     url3 = f'https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API_KEY}&units=metric'
     data2 = requests.get(url3).json()
     weather = data2['weather'][0]['main']
@@ -49,6 +48,7 @@ def applicationStart():
 
     pdf.add_page()
 
+    # style pdf
     pdf.set_font("Arial", size=15, style='B')
 
     pdf.cell(200, 10, txt="The weather for " + getcity() + " is: ",
@@ -74,6 +74,7 @@ def applicationStart():
     pdf.cell(200, 10, txt="Recommend Clothes: ",
              ln=1, align='C')
 
+    # print images
     clothes = getClothes(temperatur, weather)
     counter = 1
     for i in clothes:
@@ -84,6 +85,7 @@ def applicationStart():
 
     pdf.output("Wetterdaten.pdf")
 
+    # load on ftp server
     HOSTNAME = "niculinsteiner.bplaced.net"
     USERNAME = "niculinsteiner_niculin"
     PASSWORD = "FcSg1879!"
@@ -100,11 +102,13 @@ def applicationStart():
 
     print("on server")
 
+    # send email
     with yagmail.SMTP(user, app_password) as yag:
         yag.send(to, subject, "Wetterdaten.pdf")
         print('Sent email successfully')
 
 
+# get the city from IP
 def getcity():
     url = 'http://ipinfo.io/json'
     response = urlopen(url)
@@ -112,6 +116,7 @@ def getcity():
     return city
 
 
+# get the loc from IP
 def getLoc():
     url = 'http://ipinfo.io/json'
     response = urlopen(url)
@@ -119,20 +124,13 @@ def getLoc():
     return loc
 
 
+# get the wright clothes
 def getClothes(temperatur, weather):
-    # weather = 'Rain'
-
-    # temperatur = 15
-
     pullover = 'images/Pullover.jpg'
     tshirt = 'images/T-shirt.jpg'
-
     pants = ['images/Kurzehose.jpg', 'images/Langehose.jpg']
-
     shoes = ['images/Winterschuh.jpg', 'images/Schuh.jpg', 'images/Adilette.jpg']
-
     hat = ['images/Regenschirm.jpg', 'images/Sonnenbrille.jpg', 'images/Mütze.jpg', 'images/Kappie.jpg']
-
     jacket = [
         'images/Winterjacke.png',
         'images/Regenjacke.jpg', 'images/Jäckchen.jpg']
@@ -159,6 +157,7 @@ def getClothes(temperatur, weather):
         return [hat[3], pullover, tshirt, pants[0], shoes[1]]
 
 
+# get the wright weather icon
 def getWeatherImg(weather):
     if weather.__eq__('Clouds'):
         return 'images/clouds.jpg'
@@ -173,8 +172,4 @@ def getWeatherImg(weather):
         return 'images/drizzle.png'
 
 
-# Fill Required Information
-
-
 applicationStart()
-# beplaced pw = FcSg1879!
